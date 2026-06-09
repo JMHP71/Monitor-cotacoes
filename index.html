@@ -5,317 +5,290 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Monitor de Cotações — Carteira Joao Miguel</title>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --bg: #ffffff; --bg-secondary: #f5f5f3; --bg-tertiary: #eeede8;
-    --text: #1a1a18; --text-secondary: #6b6b67; --text-tertiary: #9b9b96;
-    --border: rgba(0,0,0,0.12); --border-strong: rgba(0,0,0,0.25);
-    --green: #1D9E75; --red: #D85A30;
-    --radius: 8px; --radius-lg: 12px;
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#ffffff;--bg2:#f5f5f3;--bg3:#eeede8;
+    --tx:#1a1a18;--tx2:#6b6b67;--tx3:#9b9b96;
+    --bd:rgba(0,0,0,0.12);--bd2:rgba(0,0,0,0.25);
+    --gn:#1D9E75;--rd:#D85A30;--r:8px;--rl:12px
   }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #1c1c1a; --bg-secondary: #252523; --bg-tertiary: #2e2e2b;
-      --text: #f0efe8; --text-secondary: #a8a8a0; --text-tertiary: #6b6b65;
-      --border: rgba(255,255,255,0.1); --border-strong: rgba(255,255,255,0.22);
-    }
-  }
-  body { background: var(--bg-tertiary); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; font-size: 15px; min-height: 100vh; }
-  .app { max-width: 960px; margin: 0 auto; padding: 0 16px 40px; }
-
-  .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 20px 0 16px; border-bottom: 0.5px solid var(--border); margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
-  .top-bar h1 { font-size: 18px; font-weight: 500; }
-  .subtitle { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
-  .tv-badge { font-size: 11px; background: var(--bg-secondary); border: 0.5px solid var(--border); border-radius: 20px; padding: 4px 12px; color: var(--text-secondary); }
-
-  .summary-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 8px; margin-bottom: 20px; }
-  .sum-card { background: var(--bg-secondary); border-radius: var(--radius); padding: 12px 14px; }
-  .sum-label { font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; }
-  .sum-val { font-size: 18px; font-weight: 500; }
-
-  .tabs-nav { display: flex; gap: 0; border-bottom: 0.5px solid var(--border); overflow-x: auto; }
-  .tab-btn { padding: 9px 18px; font-size: 13px; font-weight: 500; cursor: pointer; background: transparent; border: none; color: var(--text-secondary); border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color 0.15s; white-space: nowrap; }
-  .tab-btn:hover { color: var(--text); }
-  .tab-btn.active { color: var(--text); border-bottom-color: var(--text); }
-  .tab-panel { display: none; padding-top: 20px; }
-  .tab-panel.active { display: block; }
-
-  .section-label { font-size: 11px; font-weight: 500; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; }
-  .widget-wrap { border-radius: var(--radius-lg); overflow: hidden; border: 0.5px solid var(--border); margin-bottom: 24px; }
-
-  .chart-selector { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
-  .chart-btn { padding: 5px 14px; font-size: 12px; border-radius: 20px; border: 0.5px solid var(--border-strong); background: var(--bg-secondary); color: var(--text-secondary); cursor: pointer; transition: all 0.15s; }
-  .chart-btn:hover { background: var(--bg); color: var(--text); }
-  .chart-btn.active { background: var(--text); color: var(--bg); border-color: var(--text); }
-  .chart-wrap { border-radius: var(--radius-lg); overflow: hidden; border: 0.5px solid var(--border); }
-  .chart-wrap iframe { display: block; width: 100%; height: 440px; border: none; }
-
-  .alerts-wrap { background: var(--bg); border-radius: var(--radius-lg); border: 0.5px solid var(--border); overflow: hidden; margin-bottom: 20px; }
-  .alert-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  .alert-table th { text-align: left; font-size: 11px; font-weight: 500; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; padding: 10px 14px; border-bottom: 0.5px solid var(--border); background: var(--bg-secondary); }
-  .alert-table td { padding: 10px 14px; border-bottom: 0.5px solid var(--border); vertical-align: middle; }
-  .alert-table tr:last-child td { border-bottom: none; }
-  .alert-table tr:hover td { background: var(--bg-secondary); }
-  .alert-table input { width: 90px; font-size: 12px; padding: 5px 8px; border: 0.5px solid var(--border-strong); border-radius: 6px; background: var(--bg); color: var(--text); }
-
-  .history-wrap { background: var(--bg); border-radius: var(--radius-lg); border: 0.5px solid var(--border); padding: 16px; }
-  .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-  .history-list { list-style: none; max-height: 200px; overflow-y: auto; }
-  .history-item { display: flex; gap: 10px; padding: 8px 0; border-bottom: 0.5px solid var(--border); font-size: 12px; }
-  .history-item:last-child { border-bottom: none; }
-  .history-empty { font-size: 12px; color: var(--text-secondary); text-align: center; padding: 20px 0; }
-  .clear-btn { font-size: 11px; color: var(--red); background: none; border: none; cursor: pointer; }
-  .clear-btn:hover { text-decoration: underline; }
-
-  .footer { margin-top: 28px; padding-top: 16px; border-top: 0.5px solid var(--border); font-size: 11px; color: var(--text-tertiary); line-height: 1.7; }
-
-  @media (max-width: 600px) {
-    .summary-grid { grid-template-columns: repeat(2, 1fr); }
-    .chart-wrap iframe { height: 360px; }
-  }
+  @media(prefers-color-scheme:dark){:root{
+    --bg:#1c1c1a;--bg2:#252523;--bg3:#2e2e2b;
+    --tx:#f0efe8;--tx2:#a8a8a0;--tx3:#6b6b65;
+    --bd:rgba(255,255,255,0.1);--bd2:rgba(255,255,255,0.22)
+  }}
+  body{background:var(--bg3);color:var(--tx);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;font-size:15px;min-height:100vh}
+  .app{max-width:960px;margin:0 auto;padding:0 16px 40px}
+  .top-bar{display:flex;justify-content:space-between;align-items:center;padding:20px 0 16px;border-bottom:.5px solid var(--bd);margin-bottom:20px;flex-wrap:wrap;gap:12px}
+  h1{font-size:18px;font-weight:500}
+  .sub{font-size:12px;color:var(--tx2);margin-top:2px}
+  .badge{font-size:11px;background:var(--bg2);border:.5px solid var(--bd);border-radius:20px;padding:4px 12px;color:var(--tx2)}
+  .grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:20px}
+  .card{background:var(--bg2);border-radius:var(--r);padding:12px 14px}
+  .clabel{font-size:11px;color:var(--tx2);margin-bottom:4px}
+  .cval{font-size:18px;font-weight:500}
+  .tabs{display:flex;border-bottom:.5px solid var(--bd);overflow-x:auto;margin-bottom:0}
+  .tb{padding:9px 18px;font-size:13px;font-weight:500;cursor:pointer;background:transparent;border:none;color:var(--tx2);border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .15s;white-space:nowrap}
+  .tb:hover{color:var(--tx)}
+  .tb.active{color:var(--tx);border-bottom-color:var(--tx)}
+  .panel{display:none;padding-top:20px}
+  .panel.active{display:block}
+  .slabel{font-size:11px;font-weight:500;color:var(--tx2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+  .wbox{border-radius:var(--rl);overflow:hidden;border:.5px solid var(--bd);margin-bottom:24px}
+  .csel{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+  .cbtn{padding:5px 14px;font-size:12px;border-radius:20px;border:.5px solid var(--bd2);background:var(--bg2);color:var(--tx2);cursor:pointer;transition:all .15s}
+  .cbtn:hover{background:var(--bg);color:var(--tx)}
+  .cbtn.active{background:var(--tx);color:var(--bg);border-color:var(--tx)}
+  .cwrap{border-radius:var(--rl);overflow:hidden;border:.5px solid var(--bd)}
+  .aw{background:var(--bg);border-radius:var(--rl);border:.5px solid var(--bd);overflow:hidden;margin-bottom:20px}
+  .at{width:100%;border-collapse:collapse;font-size:13px}
+  .at th{text-align:left;font-size:11px;font-weight:500;color:var(--tx2);text-transform:uppercase;letter-spacing:.05em;padding:10px 14px;border-bottom:.5px solid var(--bd);background:var(--bg2)}
+  .at td{padding:10px 14px;border-bottom:.5px solid var(--bd);vertical-align:middle}
+  .at tr:last-child td{border-bottom:none}
+  .at tr:hover td{background:var(--bg2)}
+  .at input{width:90px;font-size:12px;padding:5px 8px;border:.5px solid var(--bd2);border-radius:6px;background:var(--bg);color:var(--tx)}
+  .hw{background:var(--bg);border-radius:var(--rl);border:.5px solid var(--bd);padding:16px}
+  .hh{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+  .hl{list-style:none;max-height:200px;overflow-y:auto}
+  .hi{display:flex;gap:10px;padding:8px 0;border-bottom:.5px solid var(--bd);font-size:12px}
+  .hi:last-child{border-bottom:none}
+  .he{font-size:12px;color:var(--tx2);text-align:center;padding:20px 0}
+  .clr{font-size:11px;color:var(--rd);background:none;border:none;cursor:pointer}
+  .footer{margin-top:28px;padding-top:16px;border-top:.5px solid var(--bd);font-size:11px;color:var(--tx3);line-height:1.7}
+  @media(max-width:600px){.grid4{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
 <div class="app">
 
-  <div class="top-bar">
-    <div>
-      <h1>Monitor de Cotações</h1>
-      <div class="subtitle">Portugal · Espanha · Alemanha — 12 acções</div>
-    </div>
-    <div class="tv-badge">📈 Dados em tempo real via TradingView</div>
-  </div>
+<div class="top-bar">
+  <div><h1>Monitor de Cotações</h1><div class="sub">Portugal · Espanha · Alemanha — 12 acções</div></div>
+  <div class="badge">📈 Dados em tempo real via TradingView</div>
+</div>
 
-  <div class="summary-grid">
-    <div class="sum-card"><div class="sum-label">Mercados</div><div class="sum-val">🇵🇹 🇪🇸 🇩🇪</div></div>
-    <div class="sum-card"><div class="sum-label">Ações monitorizadas</div><div class="sum-val">12</div></div>
-    <div class="sum-card"><div class="sum-label">Fonte de dados</div><div class="sum-val" style="font-size:13px;margin-top:4px;">Tempo real</div></div>
-    <div class="sum-card"><div class="sum-label">Alertas configurados</div><div class="sum-val">12</div></div>
-  </div>
+<div class="grid4">
+  <div class="card"><div class="clabel">Mercados</div><div class="cval">🇵🇹 🇪🇸 🇩🇪</div></div>
+  <div class="card"><div class="clabel">Ações monitorizadas</div><div class="cval">12</div></div>
+  <div class="card"><div class="clabel">Fonte de dados</div><div class="cval" style="font-size:13px;margin-top:4px">Tempo real</div></div>
+  <div class="card"><div class="clabel">Alertas configurados</div><div class="cval">12</div></div>
+</div>
 
-  <div class="tabs-nav">
-    <button class="tab-btn active" onclick="switchTab('pt',this)">🇵🇹 Portugal</button>
-    <button class="tab-btn" onclick="switchTab('es',this)">🇪🇸 Espanha</button>
-    <button class="tab-btn" onclick="switchTab('de',this)">🇩🇪 Alemanha</button>
-    <button class="tab-btn" onclick="switchTab('alertas',this)">⚙️ Alertas</button>
-  </div>
+<div class="tabs">
+  <button class="tb active" onclick="sw('pt',this)">🇵🇹 Portugal</button>
+  <button class="tb" onclick="sw('es',this)">🇪🇸 Espanha</button>
+  <button class="tb" onclick="sw('de',this)">🇩🇪 Alemanha</button>
+  <button class="tb" onclick="sw('al',this)">⚙️ Alertas</button>
+</div>
 
-  <!-- PORTUGAL -->
-  <div class="tab-panel active" id="tab-pt">
-    <div class="section-label">Cotações em tempo real — Euronext Lisboa</div>
-    <div class="widget-wrap">
-      <div class="tradingview-widget-container">
-        <div class="tradingview-widget-container__widget"></div>
-        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-market-quotes.js" async>
-        {
-          "width": "100%", "height": 340,
-          "symbolsGroups": [{ "name": "Portugal — Euronext Lisboa", "symbols": [
-            {"name": "EURONEXT:GALP",  "displayName": "Galp Energia"},
-            {"name": "EURONEXT:NVG",   "displayName": "Navigator Company"},
-            {"name": "EURONEXT:BCP",   "displayName": "Banco Comercial"},
-            {"name": "EURONEXT:EGL",   "displayName": "Mota-Engil"},
-            {"name": "EURONEXT:SLBEN", "displayName": "SL Benfica SAD"}
-          ]}],
-          "showSymbolLogo": true, "isTransparent": false,
-          "colorTheme": "light", "locale": "pt"
-        }
-        </script>
-      </div>
-    </div>
-
-    <div class="section-label">Gráfico com RSI e MACD</div>
-    <div class="chart-selector" id="sel-pt">
-      <button class="chart-btn active" onclick="showChart('EURONEXT:GALP','pt',this)">GALP</button>
-      <button class="chart-btn" onclick="showChart('EURONEXT:NVG','pt',this)">NVG</button>
-      <button class="chart-btn" onclick="showChart('EURONEXT:BCP','pt',this)">BCP</button>
-      <button class="chart-btn" onclick="showChart('EURONEXT:EGL','pt',this)">EGL</button>
-      <button class="chart-btn" onclick="showChart('EURONEXT:SLBEN','pt',this)">SLBEN</button>
-    </div>
-    <div class="chart-wrap" id="chart-pt">
-      <iframe id="iframe-pt" src="https://s3.tradingview.com/widgetembed/?symbol=EURONEXT%3AGALP&interval=D&theme=light&style=1&locale=pt&timezone=Europe%2FLisbon&studies=RSI%40tv-basicstudies%1FMACD%40tv-basicstudies&withdateranges=1&hide_side_toolbar=0" allowtransparency="true" frameborder="0" scrolling="no" allowfullscreen></iframe>
+<!-- PORTUGAL -->
+<div class="panel active" id="tab-pt">
+  <div class="slabel">Cotações — Euronext Lisboa</div>
+  <div class="wbox">
+    <div class="tradingview-widget-container">
+      <div class="tradingview-widget-container__widget"></div>
+      <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-market-quotes.js" async>
+      {"width":"100%","height":340,"symbolsGroups":[{"name":"Portugal","symbols":[
+        {"name":"EURONEXT:GALP","displayName":"Galp Energia"},
+        {"name":"EURONEXT:NVG","displayName":"Navigator Company"},
+        {"name":"EURONEXT:BCP","displayName":"Banco Comercial"},
+        {"name":"EURONEXT:EGL","displayName":"Mota-Engil"},
+        {"name":"EURONEXT:SLBEN","displayName":"SL Benfica SAD"}
+      ]}],"showSymbolLogo":true,"isTransparent":false,"colorTheme":"light","locale":"pt"}
+      </script>
     </div>
   </div>
+  <div class="slabel">Gráfico com RSI e MACD</div>
+  <div class="csel" id="s-pt">
+    <button class="cbtn active" onclick="sc('EURONEXT:GALP','pt',this)">GALP</button>
+    <button class="cbtn" onclick="sc('EURONEXT:NVG','pt',this)">NVG</button>
+    <button class="cbtn" onclick="sc('EURONEXT:BCP','pt',this)">BCP</button>
+    <button class="cbtn" onclick="sc('EURONEXT:EGL','pt',this)">EGL</button>
+    <button class="cbtn" onclick="sc('EURONEXT:SLBEN','pt',this)">SLBEN</button>
+  </div>
+  <div class="cwrap" id="c-pt"></div>
+</div>
 
-  <!-- ESPANHA -->
-  <div class="tab-panel" id="tab-es">
-    <div class="section-label">Cotações em tempo real — Madrid IBEX-35</div>
-    <div class="widget-wrap">
-      <div class="tradingview-widget-container">
-        <div class="tradingview-widget-container__widget"></div>
-        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-market-quotes.js" async>
-        {
-          "width": "100%", "height": 290,
-          "symbolsGroups": [{ "name": "Espanha — Madrid IBEX-35", "symbols": [
-            {"name": "BME:REP", "displayName": "Repsol"},
-            {"name": "BME:IDR", "displayName": "Indra Sistemas"},
-            {"name": "BME:FER", "displayName": "Ferrovial"},
-            {"name": "BME:IBE", "displayName": "Iberdrola"}
-          ]}],
-          "showSymbolLogo": true, "isTransparent": false,
-          "colorTheme": "light", "locale": "pt"
-        }
-        </script>
-      </div>
-    </div>
-
-    <div class="section-label">Gráfico com RSI e MACD</div>
-    <div class="chart-selector" id="sel-es">
-      <button class="chart-btn active" onclick="showChart('BME:REP','es',this)">REP</button>
-      <button class="chart-btn" onclick="showChart('BME:IDR','es',this)">IDR</button>
-      <button class="chart-btn" onclick="showChart('BME:FER','es',this)">FER</button>
-      <button class="chart-btn" onclick="showChart('BME:IBE','es',this)">IBE</button>
-    </div>
-    <div class="chart-wrap" id="chart-es">
-      <iframe id="iframe-es" src="https://s3.tradingview.com/widgetembed/?symbol=BME%3AREP&interval=D&theme=light&style=1&locale=pt&timezone=Europe%2FLisbon&studies=RSI%40tv-basicstudies%1FMACD%40tv-basicstudies&withdateranges=1&hide_side_toolbar=0" allowtransparency="true" frameborder="0" scrolling="no" allowfullscreen></iframe>
+<!-- ESPANHA -->
+<div class="panel" id="tab-es">
+  <div class="slabel">Cotações — Madrid IBEX-35</div>
+  <div class="wbox">
+    <div class="tradingview-widget-container">
+      <div class="tradingview-widget-container__widget"></div>
+      <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-market-quotes.js" async>
+      {"width":"100%","height":290,"symbolsGroups":[{"name":"Espanha","symbols":[
+        {"name":"BME:REP","displayName":"Repsol"},
+        {"name":"BME:IDR","displayName":"Indra Sistemas"},
+        {"name":"BME:FER","displayName":"Ferrovial"},
+        {"name":"BME:IBE","displayName":"Iberdrola"}
+      ]}],"showSymbolLogo":true,"isTransparent":false,"colorTheme":"light","locale":"pt"}
+      </script>
     </div>
   </div>
+  <div class="slabel">Gráfico com RSI e MACD</div>
+  <div class="csel" id="s-es">
+    <button class="cbtn active" onclick="sc('BME:REP','es',this)">REP</button>
+    <button class="cbtn" onclick="sc('BME:IDR','es',this)">IDR</button>
+    <button class="cbtn" onclick="sc('BME:FER','es',this)">FER</button>
+    <button class="cbtn" onclick="sc('BME:IBE','es',this)">IBE</button>
+  </div>
+  <div class="cwrap" id="c-es"></div>
+</div>
 
-  <!-- ALEMANHA -->
-  <div class="tab-panel" id="tab-de">
-    <div class="section-label">Cotações em tempo real — Xetra DAX</div>
-    <div class="widget-wrap">
-      <div class="tradingview-widget-container">
-        <div class="tradingview-widget-container__widget"></div>
-        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-market-quotes.js" async>
-        {
-          "width": "100%", "height": 240,
-          "symbolsGroups": [{ "name": "Alemanha — Xetra DAX", "symbols": [
-            {"name": "XETR:RHM", "displayName": "Rheinmetall"},
-            {"name": "XETR:SAP", "displayName": "SAP SE"},
-            {"name": "XETR:ENR", "displayName": "Siemens Energy"}
-          ]}],
-          "showSymbolLogo": true, "isTransparent": false,
-          "colorTheme": "light", "locale": "pt"
-        }
-        </script>
-      </div>
-    </div>
-
-    <div class="section-label">Gráfico com RSI e MACD</div>
-    <div class="chart-selector" id="sel-de">
-      <button class="chart-btn active" onclick="showChart('XETR:RHM','de',this)">RHM</button>
-      <button class="chart-btn" onclick="showChart('XETR:SAP','de',this)">SAP</button>
-      <button class="chart-btn" onclick="showChart('XETR:ENR','de',this)">ENR</button>
-    </div>
-    <div class="chart-wrap" id="chart-de">
-      <iframe id="iframe-de" src="https://s3.tradingview.com/widgetembed/?symbol=XETR%3ARHM&interval=D&theme=light&style=1&locale=pt&timezone=Europe%2FLisbon&studies=RSI%40tv-basicstudies%1FMACD%40tv-basicstudies&withdateranges=1&hide_side_toolbar=0" allowtransparency="true" frameborder="0" scrolling="no" allowfullscreen></iframe>
+<!-- ALEMANHA -->
+<div class="panel" id="tab-de">
+  <div class="slabel">Cotações — Xetra DAX</div>
+  <div class="wbox">
+    <div class="tradingview-widget-container">
+      <div class="tradingview-widget-container__widget"></div>
+      <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-market-quotes.js" async>
+      {"width":"100%","height":240,"symbolsGroups":[{"name":"Alemanha","symbols":[
+        {"name":"XETR:RHM","displayName":"Rheinmetall"},
+        {"name":"XETR:SAP","displayName":"SAP SE"},
+        {"name":"XETR:ENR","displayName":"Siemens Energy"}
+      ]}],"showSymbolLogo":true,"isTransparent":false,"colorTheme":"light","locale":"pt"}
+      </script>
     </div>
   </div>
-
-  <!-- ALERTAS -->
-  <div class="tab-panel" id="tab-alertas">
-    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;line-height:1.6;">
-      Define os limites de preço para cada acção. O script de email envia o resumo diário às 18h com alerta quando o preço sair do intervalo.
-    </p>
-    <div class="alerts-wrap">
-      <table class="alert-table">
-        <thead>
-          <tr>
-            <th>Acção</th><th>Sector</th><th>Alvo analistas</th><th>Alerta baixo €</th><th>Alerta alto €</th>
-          </tr>
-        </thead>
-        <tbody id="alertsBody"></tbody>
-      </table>
-    </div>
-    <div class="history-wrap">
-      <div class="history-header">
-        <span class="section-label" style="margin-bottom:0;">Histórico de alertas</span>
-        <button class="clear-btn" onclick="clearHistory()">Limpar</button>
-      </div>
-      <ul class="history-list" id="historyList">
-        <li class="history-empty">Nenhum alerta registado ainda.</li>
-      </ul>
-    </div>
+  <div class="slabel">Gráfico com RSI e MACD</div>
+  <div class="csel" id="s-de">
+    <button class="cbtn active" onclick="sc('XETR:RHM','de',this)">RHM</button>
+    <button class="cbtn" onclick="sc('XETR:SAP','de',this)">SAP</button>
+    <button class="cbtn" onclick="sc('XETR:ENR','de',this)">ENR</button>
   </div>
+  <div class="cwrap" id="c-de"></div>
+</div>
 
-  <div class="footer">
-    Dados em tempo real via widgets oficiais do TradingView (gráficos via iframe embed). Os alertas de preço são geridos localmente e enviados por email às 18h via Google Apps Script. Esta página é exclusivamente para fins informativos — não constitui aconselhamento financeiro. Consulta sempre um profissional registado na CMVM antes de tomar decisões de investimento.
+<!-- ALERTAS -->
+<div class="panel" id="tab-al">
+  <p style="font-size:13px;color:var(--tx2);margin-bottom:16px;line-height:1.6">Define os limites de preço. O email diário das 18h avisa quando o preço sair do intervalo.</p>
+  <div class="aw"><table class="at">
+    <thead><tr><th>Acção</th><th>Sector</th><th>Alvo</th><th>Alerta baixo €</th><th>Alerta alto €</th></tr></thead>
+    <tbody id="ab"></tbody>
+  </table></div>
+  <div class="hw">
+    <div class="hh"><span class="slabel" style="margin-bottom:0">Histórico de alertas</span><button class="clr" onclick="clrH()">Limpar</button></div>
+    <ul class="hl" id="hl"><li class="he">Nenhum alerta registado ainda.</li></ul>
   </div>
 </div>
 
+<div class="footer">Dados em tempo real via widgets oficiais TradingView. Alertas geridos localmente, resumo diário às 18h via Google Apps Script. Informação exclusivamente educativa — não constitui aconselhamento financeiro. Consulta sempre um profissional registado na CMVM.</div>
+</div>
+
 <script>
-const STOCKS = [
-  { tv:'EURONEXT:GALP',  label:'GALP',  name:'Galp Energia',             tab:'pt', alertLow:17.00,   alertHigh:21.00,   target:20.00,   sector:'⛽ Energia',       flag:'🇵🇹' },
-  { tv:'EURONEXT:NVG',   label:'NVG',   name:'Navigator Company',         tab:'pt', alertLow:2.90,    alertHigh:3.70,    target:4.00,    sector:'🌳 Papel',         flag:'🇵🇹' },
-  { tv:'EURONEXT:BCP',   label:'BCP',   name:'Banco Comercial Português', tab:'pt', alertLow:0.70,    alertHigh:1.00,    target:0.90,    sector:'🏦 Banca',         flag:'🇵🇹' },
-  { tv:'EURONEXT:EGL',   label:'EGL',   name:'Mota-Engil',                tab:'pt', alertLow:4.20,    alertHigh:6.00,    target:6.00,    sector:'🏗️ Construção',   flag:'🇵🇹' },
-  { tv:'EURONEXT:SLBEN', label:'SLBEN', name:'SL Benfica SAD',            tab:'pt', alertLow:5.50,    alertHigh:7.00,    target:6.80,    sector:'⚽ Desportivo',    flag:'🇵🇹' },
-  { tv:'BME:REP',        label:'REP',   name:'Repsol',                    tab:'es', alertLow:20.00,   alertHigh:26.00,   target:22.44,   sector:'⛽ Energia',       flag:'🇪🇸' },
-  { tv:'BME:IDR',        label:'IDR',   name:'Indra Sistemas',            tab:'es', alertLow:50.00,   alertHigh:66.00,   target:65.56,   sector:'🛡️ Defesa / IA',  flag:'🇪🇸' },
-  { tv:'BME:FER',        label:'FER',   name:'Ferrovial',                 tab:'es', alertLow:50.00,   alertHigh:65.00,   target:60.19,   sector:'🏗️ Construção',   flag:'🇪🇸' },
-  { tv:'BME:IBE',        label:'IBE',   name:'Iberdrola',                 tab:'es', alertLow:17.00,   alertHigh:21.00,   target:19.76,   sector:'⚡ Energia',       flag:'🇪🇸' },
-  { tv:'XETR:RHM',       label:'RHM',   name:'Rheinmetall',               tab:'de', alertLow:1100.00, alertHigh:1900.00, target:1889.38, sector:'🛡️ Defesa',        flag:'🇩🇪' },
-  { tv:'XETR:SAP',       label:'SAP',   name:'SAP SE',                    tab:'de', alertLow:200.00,  alertHigh:280.00,  target:255.00,  sector:'🤖 IA / Software', flag:'🇩🇪' },
-  { tv:'XETR:ENR',       label:'ENR',   name:'Siemens Energy',            tab:'de', alertLow:130.00,  alertHigh:195.00,  target:194.88,  sector:'⚡ Energia',       flag:'🇩🇪' },
+const S=[
+  {tv:'EURONEXT:GALP', l:'GALP', n:'Galp Energia',            t:'pt', lo:17.00,  hi:21.00,   tg:20.00,   s:'⛽ Energia',      f:'🇵🇹'},
+  {tv:'EURONEXT:NVG',  l:'NVG',  n:'Navigator Company',        t:'pt', lo:2.90,   hi:3.70,    tg:4.00,    s:'🌳 Papel',        f:'🇵🇹'},
+  {tv:'EURONEXT:BCP',  l:'BCP',  n:'Banco Comercial Português',t:'pt', lo:0.70,   hi:1.00,    tg:0.90,    s:'🏦 Banca',        f:'🇵🇹'},
+  {tv:'EURONEXT:EGL',  l:'EGL',  n:'Mota-Engil',               t:'pt', lo:4.20,   hi:6.00,    tg:6.00,    s:'🏗️ Construção',  f:'🇵🇹'},
+  {tv:'EURONEXT:SLBEN',l:'SLBEN',n:'SL Benfica SAD',           t:'pt', lo:5.50,   hi:7.00,    tg:6.80,    s:'⚽ Desportivo',   f:'🇵🇹'},
+  {tv:'BME:REP',       l:'REP',  n:'Repsol',                   t:'es', lo:20.00,  hi:26.00,   tg:22.44,   s:'⛽ Energia',      f:'🇪🇸'},
+  {tv:'BME:IDR',       l:'IDR',  n:'Indra Sistemas',           t:'es', lo:50.00,  hi:66.00,   tg:65.56,   s:'🛡️ Defesa/IA',   f:'🇪🇸'},
+  {tv:'BME:FER',       l:'FER',  n:'Ferrovial',                t:'es', lo:50.00,  hi:65.00,   tg:60.19,   s:'🏗️ Construção',  f:'🇪🇸'},
+  {tv:'BME:IBE',       l:'IBE',  n:'Iberdrola',                t:'es', lo:17.00,  hi:21.00,   tg:19.76,   s:'⚡ Energia',      f:'🇪🇸'},
+  {tv:'XETR:RHM',      l:'RHM',  n:'Rheinmetall',              t:'de', lo:1100,   hi:1900,    tg:1889.38, s:'🛡️ Defesa',       f:'🇩🇪'},
+  {tv:'XETR:SAP',      l:'SAP',  n:'SAP SE',                   t:'de', lo:200,    hi:280,     tg:255.00,  s:'🤖 IA/Software',  f:'🇩🇪'},
+  {tv:'XETR:ENR',      l:'ENR',  n:'Siemens Energy',           t:'de', lo:130,    hi:195,     tg:194.88,  s:'⚡ Energia',      f:'🇩🇪'},
 ];
 
-let userAlerts = {}, alertHistory = [];
-STOCKS.forEach(s => { userAlerts[s.tv] = { low: s.alertLow, high: s.alertHigh }; });
+let A={},H=[];
+S.forEach(s=>{A[s.tv]={lo:s.lo,hi:s.hi}});
 
-function loadSaved() {
-  try {
-    const a = localStorage.getItem('tv_alerts_v4');
-    if (a) userAlerts = { ...userAlerts, ...JSON.parse(a) };
-    const h = localStorage.getItem('tv_history_v4');
-    if (h) alertHistory = JSON.parse(h);
-  } catch(e) {}
+function load(){
+  try{const a=localStorage.getItem('ma5');if(a)A={...A,...JSON.parse(a)}}catch(e){}
+  try{const h=localStorage.getItem('mh5');if(h)H=JSON.parse(h)}catch(e){}
 }
-function saveAlerts() { try { localStorage.setItem('tv_alerts_v4', JSON.stringify(userAlerts)); } catch(e) {} }
-function saveHistory() { try { localStorage.setItem('tv_history_v4', JSON.stringify(alertHistory.slice(0,100))); } catch(e) {} }
+function saveA(){try{localStorage.setItem('ma5',JSON.stringify(A))}catch(e){}}
+function saveH(){try{localStorage.setItem('mh5',JSON.stringify(H.slice(0,100)))}catch(e){}}
 
-function switchTab(tab, btn) {
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+function sw(tab,btn){
+  document.querySelectorAll('.tb').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   btn.classList.add('active');
-  document.getElementById('tab-' + tab).classList.add('active');
+  document.getElementById('tab-'+tab).classList.add('active');
 }
 
-function showChart(symbol, tab, btn) {
-  // Update active button
-  document.querySelectorAll('#sel-' + tab + ' .chart-btn').forEach(b => b.classList.remove('active'));
+// Build chart using embed-widget-symbol-overview (works on external domains)
+function sc(sym,tab,btn){
+  document.querySelectorAll('#s-'+tab+' .cbtn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  // Update iframe src — most reliable way to change TradingView chart
-  const enc = encodeURIComponent(symbol);
-  const iframe = document.getElementById('iframe-' + tab);
-  iframe.src = `https://s3.tradingview.com/widgetembed/?symbol=${enc}&interval=D&theme=light&style=1&locale=pt&timezone=Europe%2FLisbon&studies=RSI%40tv-basicstudies%1FMACD%40tv-basicstudies&withdateranges=1&hide_side_toolbar=0`;
+  const wrap=document.getElementById('c-'+tab);
+  wrap.innerHTML='';
+  const div=document.createElement('div');
+  div.className='tradingview-widget-container';
+  const inner=document.createElement('div');
+  inner.className='tradingview-widget-container__widget';
+  div.appendChild(inner);
+  const scr=document.createElement('script');
+  scr.src='https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js';
+  scr.async=true;
+  scr.textContent=JSON.stringify({
+    symbols:[[sym]],
+    chartOnly:false,
+    width:'100%',
+    height:450,
+    locale:'pt',
+    colorTheme:'light',
+    autosize:true,
+    showVolume:true,
+    showMA:true,
+    hideDateRanges:false,
+    hideMarketStatus:false,
+    hideSymbolLogo:false,
+    scalePosition:'right',
+    scaleMode:'Normal',
+    fontFamily:'-apple-system,BlinkMacSystemFont,Trebuchet MS,Roboto,Ubuntu,sans-serif',
+    fontSize:'10',
+    noTimeScale:false,
+    valuesTracking:'1',
+    changeMode:'price-and-percent',
+    chartType:'area',
+    maLineColor:'#2962FF',
+    maLineWidth:1,
+    maLength:9,
+    lineWidth:2,
+    lineType:0,
+    dateRanges:['1d|1','1m|30','3m|60','12m|1D','60m|1W','all|1M']
+  });
+  div.appendChild(scr);
+  wrap.appendChild(div);
 }
 
-function updateAlert(tv, type, val) {
-  const v = parseFloat(val);
-  if (!isNaN(v)) { userAlerts[tv][type] = v; saveAlerts(); }
-}
+function ua(tv,t,v){const n=parseFloat(v);if(!isNaN(n)){A[tv][t]=n;saveA()}}
 
-function renderAlertsTable() {
-  document.getElementById('alertsBody').innerHTML = STOCKS.map(s => {
-    const al = userAlerts[s.tv];
-    return `<tr>
-      <td><strong>${s.flag} ${s.label}</strong><br><span style="font-size:11px;color:var(--text-secondary);">${s.name}</span></td>
-      <td style="font-size:12px;color:var(--text-secondary);">${s.sector}</td>
-      <td style="font-size:12px;">€${s.target.toFixed(2)}</td>
-      <td><input type="number" step="0.01" value="${al.low.toFixed(2)}" onchange="updateAlert('${s.tv}','low',this.value)" /></td>
-      <td><input type="number" step="0.01" value="${al.high.toFixed(2)}" onchange="updateAlert('${s.tv}','high',this.value)" /></td>
-    </tr>`;
+function renderAT(){
+  document.getElementById('ab').innerHTML=S.map(s=>{
+    const a=A[s.tv];
+    return`<tr><td><strong>${s.f} ${s.l}</strong><br><span style="font-size:11px;color:var(--tx2)">${s.n}</span></td>
+    <td style="font-size:12px;color:var(--tx2)">${s.s}</td>
+    <td style="font-size:12px">€${s.tg.toFixed(2)}</td>
+    <td><input type="number" step="0.01" value="${a.lo.toFixed(2)}" onchange="ua('${s.tv}','lo',this.value)"/></td>
+    <td><input type="number" step="0.01" value="${a.hi.toFixed(2)}" onchange="ua('${s.tv}','hi',this.value)"/></td></tr>`;
   }).join('');
 }
 
-function clearHistory() { alertHistory = []; saveHistory(); renderHistory(); }
-
-function renderHistory() {
-  const list = document.getElementById('historyList');
-  if (!alertHistory.length) { list.innerHTML = '<li class="history-empty">Nenhum alerta registado ainda.</li>'; return; }
-  list.innerHTML = alertHistory.map(h => {
-    const isUp = h.type === 'high';
-    return `<li class="history-item">
-      <span style="color:${isUp?'var(--green)':'var(--red)'};">${isUp?'↑':'↓'}</span>
-      <span style="flex:1;">${h.label} ${isUp?'acima':'abaixo'} — €${h.price} (limite €${h.threshold})</span>
-      <span style="font-size:11px;color:var(--text-secondary);white-space:nowrap;">${h.time}</span>
-    </li>`;
+function clrH(){H=[];saveH();renderH()}
+function renderH(){
+  const l=document.getElementById('hl');
+  if(!H.length){l.innerHTML='<li class="he">Nenhum alerta registado ainda.</li>';return}
+  l.innerHTML=H.map(h=>{
+    const u=h.type==='hi';
+    return`<li class="hi"><span style="color:${u?'var(--gn)':'var(--rd)'}">${u?'↑':'↓'}</span>
+    <span style="flex:1">${h.l} ${u?'acima':'abaixo'} — €${h.p} (limite €${h.th})</span>
+    <span style="font-size:11px;color:var(--tx2);white-space:nowrap">${h.time}</span></li>`;
   }).join('');
 }
 
-loadSaved();
-renderAlertsTable();
-renderHistory();
+// Init charts
+function initCharts(){
+  sc('EURONEXT:GALP','pt',document.querySelector('#s-pt .cbtn'));
+  sc('BME:REP','es',document.querySelector('#s-es .cbtn'));
+  sc('XETR:RHM','de',document.querySelector('#s-de .cbtn'));
+}
+
+load();
+renderAT();
+renderH();
+window.addEventListener('load',initCharts);
 </script>
 </body>
 </html>
