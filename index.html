@@ -6,135 +6,72 @@
 <title>Monitor de Cotações — Carteira Joao Miguel</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
   :root {
     --bg: #ffffff; --bg-secondary: #f5f5f3; --bg-tertiary: #eeede8;
     --text: #1a1a18; --text-secondary: #6b6b67; --text-tertiary: #9b9b96;
     --border: rgba(0,0,0,0.12); --border-strong: rgba(0,0,0,0.25);
-    --green: #1D9E75; --green-bg: #E1F5EE; --green-text: #085041;
-    --red: #D85A30; --red-bg: #FAECE7; --red-text: #993C1D;
-    --amber: #BA7517; --amber-bg: #FAEEDA; --amber-text: #633806;
-    --blue: #378ADD; --blue-bg: #E6F1FB; --blue-text: #0C447C;
+    --green: #1D9E75; --red: #D85A30;
     --radius: 8px; --radius-lg: 12px;
   }
-
   @media (prefers-color-scheme: dark) {
     :root {
       --bg: #1c1c1a; --bg-secondary: #252523; --bg-tertiary: #2e2e2b;
       --text: #f0efe8; --text-secondary: #a8a8a0; --text-tertiary: #6b6b65;
       --border: rgba(255,255,255,0.1); --border-strong: rgba(255,255,255,0.22);
-      --green-bg: #04342C; --green-text: #9FE1CB;
-      --red-bg: #4A1B0C; --red-text: #F5C4B3;
-      --amber-bg: #412402; --amber-text: #FAC775;
-      --blue-bg: #042C53; --blue-text: #B5D4F4;
     }
   }
+  body { background: var(--bg-tertiary); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; font-size: 15px; min-height: 100vh; }
+  .app { max-width: 960px; margin: 0 auto; padding: 0 16px 40px; }
 
-  body { background: var(--bg-tertiary); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; font-size: 15px; line-height: 1.5; min-height: 100vh; }
-  .app { max-width: 860px; margin: 0 auto; padding: 0 16px 40px; }
-
-  /* Header */
-  .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 20px 0 16px; border-bottom: 0.5px solid var(--border); margin-bottom: 20px; }
+  .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 20px 0 16px; border-bottom: 0.5px solid var(--border); margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
   .top-bar h1 { font-size: 18px; font-weight: 500; }
-  .top-bar .subtitle { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
-  .btn { background: transparent; border: 0.5px solid var(--border-strong); color: var(--text); border-radius: var(--radius); padding: 7px 16px; font-size: 13px; cursor: pointer; transition: background 0.15s; }
-  .btn:hover { background: var(--bg-secondary); }
-  .btn:disabled { opacity: 0.45; cursor: not-allowed; }
-  .btn-primary { background: var(--text); color: var(--bg); border-color: var(--text); }
-  .btn-primary:hover { opacity: 0.85; background: var(--text); }
+  .subtitle { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+  .tv-badge { font-size: 11px; background: var(--bg-secondary); border: 0.5px solid var(--border); border-radius: 20px; padding: 4px 12px; color: var(--text-secondary); }
 
-  /* Status */
-  .status-bar { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--text-secondary); margin-bottom: 16px; }
-  .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text-tertiary); flex-shrink: 0; }
-  .status-dot.live { background: var(--green); }
-  .status-dot.error { background: var(--red); }
-
-  /* Summary */
   .summary-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 8px; margin-bottom: 20px; }
   .sum-card { background: var(--bg-secondary); border-radius: var(--radius); padding: 12px 14px; }
   .sum-label { font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; }
-  .sum-val { font-size: 20px; font-weight: 500; }
-  .sum-val.alert-active { color: var(--red); }
-  .sum-val.alert-ok { color: var(--green); }
+  .sum-val { font-size: 18px; font-weight: 500; }
 
-  /* Notification banner */
-  .notif-banner { background: var(--blue-bg); color: var(--blue-text); border-radius: var(--radius); padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; font-size: 13px; }
-  .notif-banner.hidden { display: none; }
-
-  /* TABS */
-  .tabs-nav { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 0.5px solid var(--border); padding-bottom: 0; }
-  .tab-btn {
-    padding: 8px 16px; font-size: 13px; font-weight: 500; cursor: pointer;
-    background: transparent; border: none; color: var(--text-secondary);
-    border-bottom: 2px solid transparent; margin-bottom: -1px;
-    border-radius: var(--radius) var(--radius) 0 0;
-    transition: color 0.15s, border-color 0.15s;
-    display: flex; align-items: center; gap: 6px;
-  }
-  .tab-btn:hover { color: var(--text); background: var(--bg-secondary); }
+  .tabs-nav { display: flex; gap: 0; border-bottom: 0.5px solid var(--border); overflow-x: auto; }
+  .tab-btn { padding: 9px 18px; font-size: 13px; font-weight: 500; cursor: pointer; background: transparent; border: none; color: var(--text-secondary); border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color 0.15s; white-space: nowrap; }
+  .tab-btn:hover { color: var(--text); }
   .tab-btn.active { color: var(--text); border-bottom-color: var(--text); }
-  .tab-badge { font-size: 10px; background: var(--bg-secondary); color: var(--text-secondary); padding: 1px 6px; border-radius: 10px; font-weight: 400; }
-  .tab-badge.has-alert { background: var(--red-bg); color: var(--red-text); }
-  .tab-panel { display: none; }
+  .tab-panel { display: none; padding-top: 20px; }
   .tab-panel.active { display: block; }
 
-  /* Stock cards */
-  .stock-card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); margin-bottom: 10px; overflow: hidden; transition: border-color 0.2s; }
-  .stock-card.triggered-high { border-left: 3px solid var(--green); }
-  .stock-card.triggered-low { border-left: 3px solid var(--red); }
-  .card-main { display: flex; justify-content: space-between; align-items: flex-start; padding: 14px 16px 10px; gap: 12px; }
-  .card-left { flex: 1; min-width: 0; }
-  .card-ticker { font-size: 15px; font-weight: 500; }
-  .card-name { font-size: 12px; color: var(--text-secondary); margin-top: 1px; }
-  .card-exchange { font-size: 11px; color: var(--text-tertiary); }
-  .card-target { font-size: 11px; margin-top: 4px; }
-  .card-right { text-align: right; flex-shrink: 0; }
-  .card-price { font-size: 22px; font-weight: 500; }
-  .card-price.loading { color: var(--text-tertiary); font-size: 18px; }
-  .card-change { font-size: 12px; margin-top: 2px; display: block; }
-  .up { color: var(--green); } .down { color: var(--red); } .flat { color: var(--text-secondary); }
-  .card-metrics { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 6px; padding: 0 16px 10px; }
-  .metric-box { background: var(--bg-secondary); border-radius: 6px; padding: 7px 9px; }
-  .metric-label { font-size: 10px; color: var(--text-secondary); margin-bottom: 2px; }
-  .metric-val { font-size: 13px; font-weight: 500; }
-  .card-alert { border-top: 0.5px solid var(--border); padding: 10px 16px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-  .alert-label { font-size: 12px; color: var(--text-secondary); }
-  .alert-input { width: 78px; font-size: 12px; padding: 4px 8px; border: 0.5px solid var(--border-strong); border-radius: 6px; background: var(--bg); color: var(--text); }
-  .alert-sep { color: var(--text-tertiary); font-size: 12px; }
-  .badge { font-size: 11px; padding: 3px 9px; border-radius: 10px; font-weight: 500; margin-left: auto; }
-  .badge-high { background: var(--green-bg); color: var(--green-text); }
-  .badge-low { background: var(--red-bg); color: var(--red-text); }
-  .badge-ok { background: var(--bg-secondary); color: var(--text-secondary); border: 0.5px solid var(--border); }
-  .badge-wait { background: var(--bg-secondary); color: var(--text-tertiary); border: 0.5px solid var(--border); }
+  .section-label { font-size: 11px; font-weight: 500; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; }
+  .widget-wrap { border-radius: var(--radius-lg); overflow: hidden; border: 0.5px solid var(--border); margin-bottom: 24px; }
 
-  /* Progress bar */
-  .progress-wrap { padding: 0 16px 12px; }
-  .progress-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; }
-  .progress-track { height: 4px; background: var(--bg-secondary); border-radius: 2px; overflow: hidden; }
-  .progress-fill { height: 100%; border-radius: 2px; transition: width 0.5s; }
+  .chart-selector { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+  .chart-btn { padding: 5px 14px; font-size: 12px; border-radius: 20px; border: 0.5px solid var(--border-strong); background: var(--bg-secondary); color: var(--text-secondary); cursor: pointer; transition: all 0.15s; }
+  .chart-btn:hover { background: var(--bg); color: var(--text); }
+  .chart-btn.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+  .chart-wrap { border-radius: var(--radius-lg); overflow: hidden; border: 0.5px solid var(--border); }
+  .chart-wrap iframe { display: block; width: 100%; height: 440px; border: none; }
 
-  /* Alert History */
-  .history-section { margin-top: 24px; }
-  .history-list { list-style: none; }
-  .history-item { display: flex; gap: 10px; padding: 9px 12px; background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius); margin-bottom: 6px; font-size: 13px; align-items: flex-start; }
-  .history-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
-  .history-text { flex: 1; color: var(--text); }
-  .history-time { font-size: 11px; color: var(--text-secondary); flex-shrink: 0; white-space: nowrap; }
-  .history-empty { text-align: center; color: var(--text-secondary); font-size: 13px; padding: 20px; background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius); }
+  .alerts-wrap { background: var(--bg); border-radius: var(--radius-lg); border: 0.5px solid var(--border); overflow: hidden; margin-bottom: 20px; }
+  .alert-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .alert-table th { text-align: left; font-size: 11px; font-weight: 500; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; padding: 10px 14px; border-bottom: 0.5px solid var(--border); background: var(--bg-secondary); }
+  .alert-table td { padding: 10px 14px; border-bottom: 0.5px solid var(--border); vertical-align: middle; }
+  .alert-table tr:last-child td { border-bottom: none; }
+  .alert-table tr:hover td { background: var(--bg-secondary); }
+  .alert-table input { width: 90px; font-size: 12px; padding: 5px 8px; border: 0.5px solid var(--border-strong); border-radius: 6px; background: var(--bg); color: var(--text); }
 
-  .controls { display: flex; gap: 8px; align-items: center; }
-  .interval-label { font-size: 12px; color: var(--text-secondary); }
-  .interval-select { font-size: 12px; padding: 6px 10px; border-radius: var(--radius); border: 0.5px solid var(--border-strong); background: var(--bg); color: var(--text); cursor: pointer; }
-  .clear-btn { font-size: 12px; color: var(--red); background: none; border: none; cursor: pointer; padding: 4px; }
+  .history-wrap { background: var(--bg); border-radius: var(--radius-lg); border: 0.5px solid var(--border); padding: 16px; }
+  .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .history-list { list-style: none; max-height: 200px; overflow-y: auto; }
+  .history-item { display: flex; gap: 10px; padding: 8px 0; border-bottom: 0.5px solid var(--border); font-size: 12px; }
+  .history-item:last-child { border-bottom: none; }
+  .history-empty { font-size: 12px; color: var(--text-secondary); text-align: center; padding: 20px 0; }
+  .clear-btn { font-size: 11px; color: var(--red); background: none; border: none; cursor: pointer; }
   .clear-btn:hover { text-decoration: underline; }
+
   .footer { margin-top: 28px; padding-top: 16px; border-top: 0.5px solid var(--border); font-size: 11px; color: var(--text-tertiary); line-height: 1.7; }
 
   @media (max-width: 600px) {
     .summary-grid { grid-template-columns: repeat(2, 1fr); }
-    .card-metrics { grid-template-columns: repeat(2, 1fr); }
-    .card-main { flex-direction: column; }
-    .card-right { text-align: left; }
-    .tabs-nav { overflow-x: auto; }
+    .chart-wrap iframe { height: 360px; }
   }
 </style>
 </head>
@@ -144,330 +81,241 @@
   <div class="top-bar">
     <div>
       <h1>Monitor de Cotações</h1>
-      <div class="subtitle">Portugal · Espanha · Alemanha — 12 acções monitorizadas</div>
+      <div class="subtitle">Portugal · Espanha · Alemanha — 12 acções</div>
     </div>
-    <div class="controls">
-      <span class="interval-label">Atualizar a cada:</span>
-      <select class="interval-select" id="intervalSelect" onchange="changeInterval()">
-        <option value="60">1 min</option>
-        <option value="300" selected>5 min</option>
-        <option value="600">10 min</option>
-        <option value="1800">30 min</option>
-      </select>
-      <button class="btn btn-primary" id="refreshBtn" onclick="fetchAll()">Atualizar</button>
-    </div>
-  </div>
-
-  <div class="status-bar">
-    <div class="status-dot" id="statusDot"></div>
-    <span id="statusText">A aguardar primeira atualização...</span>
-  </div>
-
-  <div class="notif-banner" id="notifBanner">
-    <span>Ativa as notificações do browser para receberes alertas mesmo com o separador em segundo plano.</span>
-    <button class="btn" onclick="requestNotifPermission()">Ativar notificações</button>
+    <div class="tv-badge">📈 Dados em tempo real via TradingView</div>
   </div>
 
   <div class="summary-grid">
+    <div class="sum-card"><div class="sum-label">Mercados</div><div class="sum-val">🇵🇹 🇪🇸 🇩🇪</div></div>
     <div class="sum-card"><div class="sum-label">Ações monitorizadas</div><div class="sum-val">12</div></div>
-    <div class="sum-card"><div class="sum-label">Alertas ativos</div><div class="sum-val" id="alertActiveCount">0</div></div>
-    <div class="sum-card"><div class="sum-label">Histórico de alertas</div><div class="sum-val" id="historyCount">0</div></div>
-    <div class="sum-card"><div class="sum-label">Última atualização</div><div class="sum-val" id="lastTimeDisplay" style="font-size:15px;">--:--</div></div>
+    <div class="sum-card"><div class="sum-label">Fonte de dados</div><div class="sum-val" style="font-size:13px;margin-top:4px;">Tempo real</div></div>
+    <div class="sum-card"><div class="sum-label">Alertas configurados</div><div class="sum-val">12</div></div>
   </div>
 
-  <!-- TABS -->
   <div class="tabs-nav">
-    <button class="tab-btn active" onclick="switchTab('pt', this)">
-      🇵🇹 Portugal <span class="tab-badge" id="badge-pt">5</span>
-    </button>
-    <button class="tab-btn" onclick="switchTab('es', this)">
-      🇪🇸 Espanha <span class="tab-badge" id="badge-es">4</span>
-    </button>
-    <button class="tab-btn" onclick="switchTab('de', this)">
-      🇩🇪 Alemanha <span class="tab-badge" id="badge-de">3</span>
-    </button>
-    <button class="tab-btn" onclick="switchTab('history', this)">
-      🔔 Alertas <span class="tab-badge" id="badge-hist">0</span>
-    </button>
+    <button class="tab-btn active" onclick="switchTab('pt',this)">🇵🇹 Portugal</button>
+    <button class="tab-btn" onclick="switchTab('es',this)">🇪🇸 Espanha</button>
+    <button class="tab-btn" onclick="switchTab('de',this)">🇩🇪 Alemanha</button>
+    <button class="tab-btn" onclick="switchTab('alertas',this)">⚙️ Alertas</button>
   </div>
 
-  <div class="tab-panel active" id="tab-pt"></div>
-  <div class="tab-panel" id="tab-es"></div>
-  <div class="tab-panel" id="tab-de"></div>
-  <div class="tab-panel" id="tab-history">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-      <span style="font-size:13px;color:var(--text-secondary);">Registo de todos os alertas disparados</span>
-      <button class="clear-btn" onclick="clearHistory()">Limpar histórico</button>
+  <!-- PORTUGAL -->
+  <div class="tab-panel active" id="tab-pt">
+    <div class="section-label">Cotações em tempo real — Euronext Lisboa</div>
+    <div class="widget-wrap">
+      <div class="tradingview-widget-container">
+        <div class="tradingview-widget-container__widget"></div>
+        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-market-quotes.js" async>
+        {
+          "width": "100%", "height": 340,
+          "symbolsGroups": [{ "name": "Portugal — Euronext Lisboa", "symbols": [
+            {"name": "EURONEXT:GALP",  "displayName": "Galp Energia"},
+            {"name": "EURONEXT:NVG",   "displayName": "Navigator Company"},
+            {"name": "EURONEXT:BCP",   "displayName": "Banco Comercial"},
+            {"name": "EURONEXT:EGL",   "displayName": "Mota-Engil"},
+            {"name": "EURONEXT:SLBEN", "displayName": "SL Benfica SAD"}
+          ]}],
+          "showSymbolLogo": true, "isTransparent": false,
+          "colorTheme": "light", "locale": "pt"
+        }
+        </script>
+      </div>
     </div>
-    <ul class="history-list" id="historyList">
-      <li class="history-empty">Nenhum alerta disparado ainda.</li>
-    </ul>
+
+    <div class="section-label">Gráfico com RSI e MACD</div>
+    <div class="chart-selector" id="sel-pt">
+      <button class="chart-btn active" onclick="showChart('EURONEXT:GALP','pt',this)">GALP</button>
+      <button class="chart-btn" onclick="showChart('EURONEXT:NVG','pt',this)">NVG</button>
+      <button class="chart-btn" onclick="showChart('EURONEXT:BCP','pt',this)">BCP</button>
+      <button class="chart-btn" onclick="showChart('EURONEXT:EGL','pt',this)">EGL</button>
+      <button class="chart-btn" onclick="showChart('EURONEXT:SLBEN','pt',this)">SLBEN</button>
+    </div>
+    <div class="chart-wrap" id="chart-pt">
+      <iframe id="iframe-pt" src="https://s3.tradingview.com/widgetembed/?symbol=EURONEXT%3AGALP&interval=D&theme=light&style=1&locale=pt&timezone=Europe%2FLisbon&studies=RSI%40tv-basicstudies%1FMACD%40tv-basicstudies&withdateranges=1&hide_side_toolbar=0" allowtransparency="true" frameborder="0" scrolling="no" allowfullscreen></iframe>
+    </div>
+  </div>
+
+  <!-- ESPANHA -->
+  <div class="tab-panel" id="tab-es">
+    <div class="section-label">Cotações em tempo real — Madrid IBEX-35</div>
+    <div class="widget-wrap">
+      <div class="tradingview-widget-container">
+        <div class="tradingview-widget-container__widget"></div>
+        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-market-quotes.js" async>
+        {
+          "width": "100%", "height": 290,
+          "symbolsGroups": [{ "name": "Espanha — Madrid IBEX-35", "symbols": [
+            {"name": "BME:REP", "displayName": "Repsol"},
+            {"name": "BME:IDR", "displayName": "Indra Sistemas"},
+            {"name": "BME:FER", "displayName": "Ferrovial"},
+            {"name": "BME:IBE", "displayName": "Iberdrola"}
+          ]}],
+          "showSymbolLogo": true, "isTransparent": false,
+          "colorTheme": "light", "locale": "pt"
+        }
+        </script>
+      </div>
+    </div>
+
+    <div class="section-label">Gráfico com RSI e MACD</div>
+    <div class="chart-selector" id="sel-es">
+      <button class="chart-btn active" onclick="showChart('BME:REP','es',this)">REP</button>
+      <button class="chart-btn" onclick="showChart('BME:IDR','es',this)">IDR</button>
+      <button class="chart-btn" onclick="showChart('BME:FER','es',this)">FER</button>
+      <button class="chart-btn" onclick="showChart('BME:IBE','es',this)">IBE</button>
+    </div>
+    <div class="chart-wrap" id="chart-es">
+      <iframe id="iframe-es" src="https://s3.tradingview.com/widgetembed/?symbol=BME%3AREP&interval=D&theme=light&style=1&locale=pt&timezone=Europe%2FLisbon&studies=RSI%40tv-basicstudies%1FMACD%40tv-basicstudies&withdateranges=1&hide_side_toolbar=0" allowtransparency="true" frameborder="0" scrolling="no" allowfullscreen></iframe>
+    </div>
+  </div>
+
+  <!-- ALEMANHA -->
+  <div class="tab-panel" id="tab-de">
+    <div class="section-label">Cotações em tempo real — Xetra DAX</div>
+    <div class="widget-wrap">
+      <div class="tradingview-widget-container">
+        <div class="tradingview-widget-container__widget"></div>
+        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-market-quotes.js" async>
+        {
+          "width": "100%", "height": 240,
+          "symbolsGroups": [{ "name": "Alemanha — Xetra DAX", "symbols": [
+            {"name": "XETR:RHM", "displayName": "Rheinmetall"},
+            {"name": "XETR:SAP", "displayName": "SAP SE"},
+            {"name": "XETR:ENR", "displayName": "Siemens Energy"}
+          ]}],
+          "showSymbolLogo": true, "isTransparent": false,
+          "colorTheme": "light", "locale": "pt"
+        }
+        </script>
+      </div>
+    </div>
+
+    <div class="section-label">Gráfico com RSI e MACD</div>
+    <div class="chart-selector" id="sel-de">
+      <button class="chart-btn active" onclick="showChart('XETR:RHM','de',this)">RHM</button>
+      <button class="chart-btn" onclick="showChart('XETR:SAP','de',this)">SAP</button>
+      <button class="chart-btn" onclick="showChart('XETR:ENR','de',this)">ENR</button>
+    </div>
+    <div class="chart-wrap" id="chart-de">
+      <iframe id="iframe-de" src="https://s3.tradingview.com/widgetembed/?symbol=XETR%3ARHM&interval=D&theme=light&style=1&locale=pt&timezone=Europe%2FLisbon&studies=RSI%40tv-basicstudies%1FMACD%40tv-basicstudies&withdateranges=1&hide_side_toolbar=0" allowtransparency="true" frameborder="0" scrolling="no" allowfullscreen></iframe>
+    </div>
+  </div>
+
+  <!-- ALERTAS -->
+  <div class="tab-panel" id="tab-alertas">
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;line-height:1.6;">
+      Define os limites de preço para cada acção. O script de email envia o resumo diário às 18h com alerta quando o preço sair do intervalo.
+    </p>
+    <div class="alerts-wrap">
+      <table class="alert-table">
+        <thead>
+          <tr>
+            <th>Acção</th><th>Sector</th><th>Alvo analistas</th><th>Alerta baixo €</th><th>Alerta alto €</th>
+          </tr>
+        </thead>
+        <tbody id="alertsBody"></tbody>
+      </table>
+    </div>
+    <div class="history-wrap">
+      <div class="history-header">
+        <span class="section-label" style="margin-bottom:0;">Histórico de alertas</span>
+        <button class="clear-btn" onclick="clearHistory()">Limpar</button>
+      </div>
+      <ul class="history-list" id="historyList">
+        <li class="history-empty">Nenhum alerta registado ainda.</li>
+      </ul>
+    </div>
   </div>
 
   <div class="footer">
-    Dados via Yahoo Finance com atraso de ~15 minutos. Informação exclusivamente para fins informativos — não constitui aconselhamento financeiro. Consulta sempre um profissional registado na CMVM antes de tomar decisões de investimento.
+    Dados em tempo real via widgets oficiais do TradingView (gráficos via iframe embed). Os alertas de preço são geridos localmente e enviados por email às 18h via Google Apps Script. Esta página é exclusivamente para fins informativos — não constitui aconselhamento financeiro. Consulta sempre um profissional registado na CMVM antes de tomar decisões de investimento.
   </div>
 </div>
 
 <script>
 const STOCKS = [
-  { ticker:'GALP.LS',  label:'GALP',  name:'Galp Energia',             exchange:'Euronext Lisboa', tab:'pt', alertLow:17.00,   alertHigh:21.00,   target:20.00,   sector:'⛽ Energia'       },
-  { ticker:'NVG.LS',   label:'NVG',   name:'Navigator Company',         exchange:'Euronext Lisboa', tab:'pt', alertLow:2.90,    alertHigh:3.70,    target:4.00,    sector:'🌳 Papel'         },
-  { ticker:'SLBEN.LS', label:'SLBEN', name:'SL Benfica SAD',            exchange:'Euronext Lisboa', tab:'pt', alertLow:5.50,    alertHigh:7.00,    target:6.80,    sector:'⚽ Desportivo'    },
-  { ticker:'BCP.LS',   label:'BCP',   name:'Banco Comercial Português', exchange:'Euronext Lisboa', tab:'pt', alertLow:0.70,    alertHigh:1.00,    target:0.90,    sector:'🏦 Banca'         },
-  { ticker:'EGL.LS',   label:'EGL',   name:'Mota-Engil',                exchange:'Euronext Lisboa', tab:'pt', alertLow:4.20,    alertHigh:6.00,    target:6.00,    sector:'🏗️ Construção'   },
-  { ticker:'REP.MC',   label:'REP',   name:'Repsol',                    exchange:'Madrid IBEX-35',  tab:'es', alertLow:20.00,   alertHigh:26.00,   target:22.44,   sector:'⛽ Energia'       },
-  { ticker:'IDR.MC',   label:'IDR',   name:'Indra Sistemas',            exchange:'Madrid IBEX-35',  tab:'es', alertLow:50.00,   alertHigh:66.00,   target:65.56,   sector:'🛡️ Defesa / IA'  },
-  { ticker:'FER.MC',   label:'FER',   name:'Ferrovial',                 exchange:'Madrid IBEX-35',  tab:'es', alertLow:50.00,   alertHigh:65.00,   target:60.19,   sector:'🏗️ Construção'   },
-  { ticker:'IBE.MC',   label:'IBE',   name:'Iberdrola',                 exchange:'Madrid IBEX-35',  tab:'es', alertLow:17.00,   alertHigh:21.00,   target:19.76,   sector:'⚡ Energia'       },
-  { ticker:'RHM.DE',   label:'RHM',   name:'Rheinmetall',               exchange:'Xetra DAX',       tab:'de', alertLow:1100.00, alertHigh:1900.00, target:1889.38, sector:'🛡️ Defesa'        },
-  { ticker:'SAP.DE',   label:'SAP',   name:'SAP SE',                    exchange:'Xetra DAX',       tab:'de', alertLow:200.00,  alertHigh:280.00,  target:255.00,  sector:'🤖 IA / Software' },
-  { ticker:'ENR.DE',   label:'ENR',   name:'Siemens Energy',            exchange:'Xetra DAX',       tab:'de', alertLow:130.00,  alertHigh:195.00,  target:194.88,  sector:'⚡ Energia'       },
+  { tv:'EURONEXT:GALP',  label:'GALP',  name:'Galp Energia',             tab:'pt', alertLow:17.00,   alertHigh:21.00,   target:20.00,   sector:'⛽ Energia',       flag:'🇵🇹' },
+  { tv:'EURONEXT:NVG',   label:'NVG',   name:'Navigator Company',         tab:'pt', alertLow:2.90,    alertHigh:3.70,    target:4.00,    sector:'🌳 Papel',         flag:'🇵🇹' },
+  { tv:'EURONEXT:BCP',   label:'BCP',   name:'Banco Comercial Português', tab:'pt', alertLow:0.70,    alertHigh:1.00,    target:0.90,    sector:'🏦 Banca',         flag:'🇵🇹' },
+  { tv:'EURONEXT:EGL',   label:'EGL',   name:'Mota-Engil',                tab:'pt', alertLow:4.20,    alertHigh:6.00,    target:6.00,    sector:'🏗️ Construção',   flag:'🇵🇹' },
+  { tv:'EURONEXT:SLBEN', label:'SLBEN', name:'SL Benfica SAD',            tab:'pt', alertLow:5.50,    alertHigh:7.00,    target:6.80,    sector:'⚽ Desportivo',    flag:'🇵🇹' },
+  { tv:'BME:REP',        label:'REP',   name:'Repsol',                    tab:'es', alertLow:20.00,   alertHigh:26.00,   target:22.44,   sector:'⛽ Energia',       flag:'🇪🇸' },
+  { tv:'BME:IDR',        label:'IDR',   name:'Indra Sistemas',            tab:'es', alertLow:50.00,   alertHigh:66.00,   target:65.56,   sector:'🛡️ Defesa / IA',  flag:'🇪🇸' },
+  { tv:'BME:FER',        label:'FER',   name:'Ferrovial',                 tab:'es', alertLow:50.00,   alertHigh:65.00,   target:60.19,   sector:'🏗️ Construção',   flag:'🇪🇸' },
+  { tv:'BME:IBE',        label:'IBE',   name:'Iberdrola',                 tab:'es', alertLow:17.00,   alertHigh:21.00,   target:19.76,   sector:'⚡ Energia',       flag:'🇪🇸' },
+  { tv:'XETR:RHM',       label:'RHM',   name:'Rheinmetall',               tab:'de', alertLow:1100.00, alertHigh:1900.00, target:1889.38, sector:'🛡️ Defesa',        flag:'🇩🇪' },
+  { tv:'XETR:SAP',       label:'SAP',   name:'SAP SE',                    tab:'de', alertLow:200.00,  alertHigh:280.00,  target:255.00,  sector:'🤖 IA / Software', flag:'🇩🇪' },
+  { tv:'XETR:ENR',       label:'ENR',   name:'Siemens Energy',            tab:'de', alertLow:130.00,  alertHigh:195.00,  target:194.88,  sector:'⚡ Energia',       flag:'🇩🇪' },
 ];
 
-let priceData = {}, userAlerts = {}, alertHistory = [], refreshTimer = null;
-let notifPermission = Notification.permission;
-let previousAlertState = {};
-let activeTab = 'pt';
-
-STOCKS.forEach(s => { userAlerts[s.ticker] = { low: s.alertLow, high: s.alertHigh }; });
+let userAlerts = {}, alertHistory = [];
+STOCKS.forEach(s => { userAlerts[s.tv] = { low: s.alertLow, high: s.alertHigh }; });
 
 function loadSaved() {
   try {
-    const saved = localStorage.getItem('monitor_alerts');
-    if (saved) userAlerts = { ...userAlerts, ...JSON.parse(saved) };
-    const hist = localStorage.getItem('monitor_history');
-    if (hist) alertHistory = JSON.parse(hist);
+    const a = localStorage.getItem('tv_alerts_v4');
+    if (a) userAlerts = { ...userAlerts, ...JSON.parse(a) };
+    const h = localStorage.getItem('tv_history_v4');
+    if (h) alertHistory = JSON.parse(h);
   } catch(e) {}
 }
-
-function saveAlerts() { try { localStorage.setItem('monitor_alerts', JSON.stringify(userAlerts)); } catch(e) {} }
-function saveHistory() { try { localStorage.setItem('monitor_history', JSON.stringify(alertHistory.slice(0, 100))); } catch(e) {} }
-
-function checkNotifBanner() {
-  if (Notification.permission === 'granted' || Notification.permission === 'denied')
-    document.getElementById('notifBanner').classList.add('hidden');
-}
-
-function requestNotifPermission() {
-  Notification.requestPermission().then(p => { notifPermission = p; checkNotifBanner(); });
-}
-
-function sendNotification(title, body) {
-  if (Notification.permission === 'granted') new Notification(title, { body });
-}
-
-function addHistory(stock, type, price, threshold) {
-  const now = new Date();
-  const timeStr = now.toLocaleTimeString('pt-PT', { hour:'2-digit', minute:'2-digit' });
-  const dateStr = now.toLocaleDateString('pt-PT', { day:'2-digit', month:'2-digit' });
-  alertHistory.unshift({ ticker: stock.label, name: stock.name, type, price: price.toFixed(3), threshold: threshold.toFixed(3), time: `${dateStr} ${timeStr}` });
-  saveHistory();
-  renderHistory();
-}
-
-function clearHistory() { alertHistory = []; saveHistory(); renderHistory(); }
-
-function renderHistory() {
-  const list = document.getElementById('historyList');
-  const count = alertHistory.length;
-  document.getElementById('historyCount').textContent = count;
-  const badge = document.getElementById('badge-hist');
-  badge.textContent = count;
-  badge.className = count > 0 ? 'tab-badge has-alert' : 'tab-badge';
-  if (!count) { list.innerHTML = '<li class="history-empty">Nenhum alerta disparado ainda.</li>'; return; }
-  list.innerHTML = alertHistory.map(h => {
-    const isUp = h.type === 'high';
-    return `<li class="history-item">
-      <span class="history-icon" style="color:${isUp ? 'var(--green)' : 'var(--red)'}">${isUp ? '↑' : '↓'}</span>
-      <span class="history-text">${h.ticker} ${isUp ? 'acima' : 'abaixo'} do alerta — €${h.price} (limite: €${h.threshold})</span>
-      <span class="history-time">${h.time}</span>
-    </li>`;
-  }).join('');
-}
+function saveAlerts() { try { localStorage.setItem('tv_alerts_v4', JSON.stringify(userAlerts)); } catch(e) {} }
+function saveHistory() { try { localStorage.setItem('tv_history_v4', JSON.stringify(alertHistory.slice(0,100))); } catch(e) {} }
 
 function switchTab(tab, btn) {
-  activeTab = tab;
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('tab-' + tab).classList.add('active');
 }
 
-async function fetchStock(ticker) {
-  try {
-    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1d&range=2d`;
-    const proxy = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
-    const res = await fetch(proxy, { signal: AbortSignal.timeout(8000) });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    const meta = data.chart.result[0].meta;
-    const price = meta.regularMarketPrice ?? meta.previousClose;
-    const prev = meta.chartPreviousClose ?? meta.previousClose;
-    const change = price - prev;
-    const changePct = prev ? (change / prev) * 100 : 0;
-    return { price, change, changePct, low52: meta.fiftyTwoWeekLow, high52: meta.fiftyTwoWeekHigh, volume: meta.regularMarketVolume, ok: true };
-  } catch(e) { return { ok: false }; }
+function showChart(symbol, tab, btn) {
+  // Update active button
+  document.querySelectorAll('#sel-' + tab + ' .chart-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  // Update iframe src — most reliable way to change TradingView chart
+  const enc = encodeURIComponent(symbol);
+  const iframe = document.getElementById('iframe-' + tab);
+  iframe.src = `https://s3.tradingview.com/widgetembed/?symbol=${enc}&interval=D&theme=light&style=1&locale=pt&timezone=Europe%2FLisbon&studies=RSI%40tv-basicstudies%1FMACD%40tv-basicstudies&withdateranges=1&hide_side_toolbar=0`;
 }
 
-async function fetchAll() {
-  const btn = document.getElementById('refreshBtn');
-  const dot = document.getElementById('statusDot');
-  btn.disabled = true; btn.textContent = 'A atualizar...';
-  dot.className = 'status-dot';
-  document.getElementById('statusText').textContent = 'A obter cotações...';
-
-  const results = await Promise.all(STOCKS.map(s => fetchStock(s.ticker)));
-  let anyError = false, alertsActive = 0;
-  const tabAlerts = { pt: 0, es: 0, de: 0 };
-
-  results.forEach((d, i) => { if (d.ok) priceData[STOCKS[i].ticker] = d; else anyError = true; });
-
-  STOCKS.forEach(s => {
-    const d = priceData[s.ticker]; if (!d?.ok) return;
-    const al = userAlerts[s.ticker];
-    const prev = previousAlertState[s.ticker];
-    if (d.price >= al.high) {
-      alertsActive++; tabAlerts[s.tab]++;
-      if (prev !== 'high') { addHistory(s, 'high', d.price, al.high); sendNotification(`${s.label} — Alerta`, `${s.name} em €${d.price.toFixed(3)}, acima de €${al.high.toFixed(2)}`); }
-      previousAlertState[s.ticker] = 'high';
-    } else if (d.price <= al.low) {
-      alertsActive++; tabAlerts[s.tab]++;
-      if (prev !== 'low') { addHistory(s, 'low', d.price, al.low); sendNotification(`${s.label} — Alerta`, `${s.name} em €${d.price.toFixed(3)}, abaixo de €${al.low.toFixed(2)}`); }
-      previousAlertState[s.ticker] = 'low';
-    } else { previousAlertState[s.ticker] = 'ok'; }
-  });
-
-  // Update tab badges
-  ['pt','es','de'].forEach(t => {
-    const b = document.getElementById('badge-' + t);
-    if (tabAlerts[t] > 0) { b.textContent = '⚠️ ' + tabAlerts[t]; b.className = 'tab-badge has-alert'; }
-    else { b.textContent = STOCKS.filter(s => s.tab === t).length; b.className = 'tab-badge'; }
-  });
-
-  const now = new Date();
-  const timeStr = now.toLocaleTimeString('pt-PT', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
-  const dateStr = now.toLocaleDateString('pt-PT', { day:'2-digit', month:'2-digit', year:'numeric' });
-  document.getElementById('lastTimeDisplay').textContent = timeStr.substring(0,5);
-  document.getElementById('statusText').textContent = anyError
-    ? `Atualizado ${dateStr} ${timeStr} (alguns dados falharam)`
-    : `Atualizado ${dateStr} às ${timeStr} · dados com ~15 min de atraso`;
-  dot.className = anyError ? 'status-dot error' : 'status-dot live';
-
-  const alertEl = document.getElementById('alertActiveCount');
-  alertEl.textContent = alertsActive;
-  alertEl.className = alertsActive > 0 ? 'sum-val alert-active' : 'sum-val alert-ok';
-
-  renderAllTabs();
-  btn.disabled = false; btn.textContent = 'Atualizar';
-}
-
-function updateAlert(ticker, type, val) {
+function updateAlert(tv, type, val) {
   const v = parseFloat(val);
-  if (!isNaN(v)) { userAlerts[ticker][type] = v; saveAlerts(); renderAllTabs(); }
+  if (!isNaN(v)) { userAlerts[tv][type] = v; saveAlerts(); }
 }
 
-function buildCard(s) {
-  const d = priceData[s.ticker];
-  const al = userAlerts[s.ticker];
-  const price = d?.price ?? null;
-  const change = d?.change ?? null;
-  const changePct = d?.changePct ?? null;
-  const dec = price !== null && price >= 100 ? 2 : 3;
-
-  let cardClass = '', badge = '<span class="badge badge-wait">A carregar...</span>';
-  if (price !== null) {
-    if (price >= al.high)       { cardClass = 'triggered-high'; badge = '<span class="badge badge-high">↑ Acima do alerta</span>'; }
-    else if (price <= al.low)   { cardClass = 'triggered-low';  badge = '<span class="badge badge-low">↓ Abaixo do alerta</span>'; }
-    else                        { badge = '<span class="badge badge-ok">Dentro do intervalo</span>'; }
-  }
-
-  const priceHtml = price !== null
-    ? `<span class="card-price">&euro;${price.toFixed(dec)}</span>`
-    : `<span class="card-price loading">A carregar...</span>`;
-
-  let changeHtml = '<span class="card-change flat">--</span>';
-  if (changePct !== null) {
-    const cls = changePct > 0 ? 'up' : changePct < 0 ? 'down' : 'flat';
-    const sign = changePct > 0 ? '+' : '';
-    changeHtml = `<span class="card-change ${cls}">${sign}${changePct.toFixed(2)}% (${change >= 0 ? '+' : ''}&euro;${Math.abs(change).toFixed(dec)})</span>`;
-  }
-
-  let targetHtml = '';
-  if (price !== null) {
-    const pct = ((s.target - price) / price * 100);
-    const col = pct >= 0 ? 'var(--green)' : 'var(--red)';
-    targetHtml = `<div class="card-target" style="color:${col};">${pct >= 0 ? '↑' : '↓'} ${pct >= 0 ? '+' : ''}${pct.toFixed(1)}% para alvo &euro;${s.target.toFixed(2)}</div>`;
-  }
-
-  const low52  = d?.low52  ? `&euro;${d.low52.toFixed(2)}`  : '--';
-  const high52 = d?.high52 ? `&euro;${d.high52.toFixed(2)}` : '--';
-  const vol    = d?.volume ? (d.volume >= 1e6 ? (d.volume/1e6).toFixed(2)+'M' : (d.volume/1000).toFixed(0)+'K') : '--';
-
-  let progressHtml = '';
-  if (price !== null && d?.low52 && d?.high52) {
-    const range = d.high52 - d.low52;
-    const pct = range > 0 ? Math.min(100, Math.max(0, ((price - d.low52) / range) * 100)) : 50;
-    const fillColor = changePct !== null && changePct >= 0 ? 'var(--green)' : 'var(--red)';
-    progressHtml = `
-      <div class="progress-wrap">
-        <div class="progress-label">
-          <span>Mín. &euro;${d.low52.toFixed(2)}</span>
-          <span style="color:var(--text-tertiary);">Posição nas 52 sem.</span>
-          <span>Máx. &euro;${d.high52.toFixed(2)}</span>
-        </div>
-        <div class="progress-track"><div class="progress-fill" style="width:${pct.toFixed(1)}%;background:${fillColor};"></div></div>
-      </div>`;
-  }
-
-  return `
-    <div class="stock-card ${cardClass}">
-      <div class="card-main">
-        <div class="card-left">
-          <div class="card-ticker">${s.label} <span style="font-size:11px;font-weight:400;color:var(--text-tertiary);">${s.sector||''}</span></div>
-          <div class="card-name">${s.name}</div>
-          <div class="card-exchange">${s.exchange}</div>
-          ${targetHtml}
-        </div>
-        <div class="card-right">${priceHtml}${changeHtml}</div>
-      </div>
-      <div class="card-metrics">
-        <div class="metric-box"><div class="metric-label">Mín. 52 sem.</div><div class="metric-val">${low52}</div></div>
-        <div class="metric-box"><div class="metric-label">Máx. 52 sem.</div><div class="metric-val">${high52}</div></div>
-        <div class="metric-box"><div class="metric-label">Volume</div><div class="metric-val">${vol}</div></div>
-      </div>
-      ${progressHtml}
-      <div class="card-alert">
-        <span class="alert-label">Alerta baixo:</span>
-        <input class="alert-input" type="number" step="0.01" value="${al.low.toFixed(2)}" onchange="updateAlert('${s.ticker}','low',this.value)" />
-        <span class="alert-sep">&mdash;</span>
-        <span class="alert-label">Alerta alto:</span>
-        <input class="alert-input" type="number" step="0.01" value="${al.high.toFixed(2)}" onchange="updateAlert('${s.ticker}','high',this.value)" />
-        ${badge}
-      </div>
-    </div>`;
+function renderAlertsTable() {
+  document.getElementById('alertsBody').innerHTML = STOCKS.map(s => {
+    const al = userAlerts[s.tv];
+    return `<tr>
+      <td><strong>${s.flag} ${s.label}</strong><br><span style="font-size:11px;color:var(--text-secondary);">${s.name}</span></td>
+      <td style="font-size:12px;color:var(--text-secondary);">${s.sector}</td>
+      <td style="font-size:12px;">€${s.target.toFixed(2)}</td>
+      <td><input type="number" step="0.01" value="${al.low.toFixed(2)}" onchange="updateAlert('${s.tv}','low',this.value)" /></td>
+      <td><input type="number" step="0.01" value="${al.high.toFixed(2)}" onchange="updateAlert('${s.tv}','high',this.value)" /></td>
+    </tr>`;
+  }).join('');
 }
 
-function renderAllTabs() {
-  ['pt','es','de'].forEach(tab => {
-    const panel = document.getElementById('tab-' + tab);
-    panel.innerHTML = STOCKS.filter(s => s.tab === tab).map(buildCard).join('');
-  });
+function clearHistory() { alertHistory = []; saveHistory(); renderHistory(); }
+
+function renderHistory() {
+  const list = document.getElementById('historyList');
+  if (!alertHistory.length) { list.innerHTML = '<li class="history-empty">Nenhum alerta registado ainda.</li>'; return; }
+  list.innerHTML = alertHistory.map(h => {
+    const isUp = h.type === 'high';
+    return `<li class="history-item">
+      <span style="color:${isUp?'var(--green)':'var(--red)'};">${isUp?'↑':'↓'}</span>
+      <span style="flex:1;">${h.label} ${isUp?'acima':'abaixo'} — €${h.price} (limite €${h.threshold})</span>
+      <span style="font-size:11px;color:var(--text-secondary);white-space:nowrap;">${h.time}</span>
+    </li>`;
+  }).join('');
 }
 
-function changeInterval() {
-  const secs = parseInt(document.getElementById('intervalSelect').value);
-  if (refreshTimer) clearInterval(refreshTimer);
-  refreshTimer = setInterval(fetchAll, secs * 1000);
-}
-
-// Init
 loadSaved();
-checkNotifBanner();
-renderAllTabs();
+renderAlertsTable();
 renderHistory();
-fetchAll();
-refreshTimer = setInterval(fetchAll, 5 * 60 * 1000);
 </script>
 </body>
 </html>
