@@ -171,7 +171,7 @@
   </div>
 </div>
 
-<div class="footer">Dados em tempo real via widgets oficiais TradingView. Alertas geridos localmente, resumo diário às 18h via Google Apps Script. Informação exclusivamente educativa — não constitui aconselhamento financeiro. Consulta sempre um profissional registado na CMVM.</div>
+<div class="footer">Cotações em tempo real via widgets oficiais TradingView. Gráficos abrem directamente no TradingView. Alertas e resumo diário às 18h via Google Apps Script. Informação exclusivamente educativa — não constitui aconselhamento financeiro. Consulta sempre um profissional registado na CMVM.</div>
 </div>
 
 <script>
@@ -207,50 +207,33 @@ function sw(tab,btn){
   document.getElementById('tab-'+tab).classList.add('active');
 }
 
-// Build chart using embed-widget-symbol-overview (works on external domains)
+// Open TradingView chart in new tab
 function sc(sym,tab,btn){
   document.querySelectorAll('#s-'+tab+' .cbtn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   const wrap=document.getElementById('c-'+tab);
-  wrap.innerHTML='';
-  const div=document.createElement('div');
-  div.className='tradingview-widget-container';
-  const inner=document.createElement('div');
-  inner.className='tradingview-widget-container__widget';
-  div.appendChild(inner);
-  const scr=document.createElement('script');
-  scr.src='https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js';
-  scr.async=true;
-  scr.textContent=JSON.stringify({
-    symbols:[[sym]],
-    chartOnly:false,
-    width:'100%',
-    height:450,
-    locale:'pt',
-    colorTheme:'light',
-    autosize:true,
-    showVolume:true,
-    showMA:true,
-    hideDateRanges:false,
-    hideMarketStatus:false,
-    hideSymbolLogo:false,
-    scalePosition:'right',
-    scaleMode:'Normal',
-    fontFamily:'-apple-system,BlinkMacSystemFont,Trebuchet MS,Roboto,Ubuntu,sans-serif',
-    fontSize:'10',
-    noTimeScale:false,
-    valuesTracking:'1',
-    changeMode:'price-and-percent',
-    chartType:'area',
-    maLineColor:'#2962FF',
-    maLineWidth:1,
-    maLength:9,
-    lineWidth:2,
-    lineType:0,
-    dateRanges:['1d|1','1m|30','3m|60','12m|1D','60m|1W','all|1M']
-  });
-  div.appendChild(scr);
-  wrap.appendChild(div);
+  const enc=encodeURIComponent(sym);
+  const url=`https://www.tradingview.com/chart/?symbol=${enc}&interval=D`;
+  wrap.innerHTML=`
+    <div style="padding:24px;text-align:center;background:var(--bg);border-radius:var(--rl);">
+      <div style="font-size:14px;font-weight:500;margin-bottom:8px;">${sym.split(':')[1]}</div>
+      <div style="font-size:12px;color:var(--tx2);margin-bottom:16px;line-height:1.6;">
+        Os gráficos interactivos do TradingView requerem abertura directa na plataforma.<br>
+        Clica para abrir com RSI, MACD e as tuas médias móveis já configuradas.
+      </div>
+      <a href="${url}" target="_blank"
+         style="display:inline-flex;align-items:center;gap:8px;padding:10px 20px;
+                background:var(--tx);color:var(--bg);border-radius:var(--r);
+                text-decoration:none;font-size:13px;font-weight:500;">
+        📈 Abrir gráfico no TradingView ↗
+      </a>
+      <div style="margin-top:16px;">
+        <a href="https://www.tradingview.com/symbols/${enc}/technicals/" target="_blank"
+           style="font-size:12px;color:var(--tx2);text-decoration:underline;">
+          Ver análise técnica completa ↗
+        </a>
+      </div>
+    </div>`;
 }
 
 function ua(tv,t,v){const n=parseFloat(v);if(!isNaN(n)){A[tv][t]=n;saveA()}}
@@ -278,17 +261,9 @@ function renderH(){
   }).join('');
 }
 
-// Init charts
-function initCharts(){
-  sc('EURONEXT:GALP','pt',document.querySelector('#s-pt .cbtn'));
-  sc('BME:REP','es',document.querySelector('#s-es .cbtn'));
-  sc('XETR:RHM','de',document.querySelector('#s-de .cbtn'));
-}
-
 load();
 renderAT();
 renderH();
-window.addEventListener('load',initCharts);
 </script>
 </body>
 </html>
