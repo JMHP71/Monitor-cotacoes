@@ -146,7 +146,7 @@
     <h2>Monitor de Cotações</h2>
     <p>Introduz a tua API key do Finnhub para activar as cotações em tempo real de todas as 12 acções — Portugal, Espanha e Alemanha.</p>
     <input class="setup-input" type="text" id="keyInput" placeholder="Introduz a tua API key do Finnhub (ex: cxxxxxxxxxxxxxxxxx)" />
-    <button class="setup-btn" onclick="saveKey()">Activar dashboard</button>
+    <button class="setup-btn" onclick="activateDash()">Activar dashboard</button>
     <span class="setup-link">Ainda não tens API key? <a href="https://finnhub.io" target="_blank">Regista-te gratuitamente em finnhub.io</a></span>
   </div>
 </div>
@@ -263,4 +263,297 @@ const STOCKS = [
   {fh:'BCP.LS',   tv:'EURONEXT:BCP',   l:'BCP',   n:'Banco Comercial Português', t:'pt', lo:0.70,   hi:1.00,    tg:0.90,    s:'🏦 Banca',        f:'🇵🇹'},
   {fh:'EGL.LS',   tv:'EURONEXT:EGL',   l:'EGL',   n:'Mota-Engil',                t:'pt', lo:4.20,   hi:6.00,    tg:6.00,    s:'🏗️ Construção',  f:'🇵🇹'},
   {fh:'SLBEN.LS', tv:'EURONEXT:SLBEN', l:'SLBEN', n:'SL Benfica SAD',            t:'pt', lo:5.50,   hi:7.00,    tg:6.80,    s:'⚽ Desportivo',   f:'🇵🇹'},
-  {fh:'REP.MC',   tv:'BME:REP',        l:'REP',   n:'Repsol',                    t:'es', lo:20.00,  hi:26.00,   tg:22
+  {fh:'REP.MC',   tv:'BME:REP',        l:'REP',   n:'Repsol',                    t:'es', lo:20.00,  hi:26.00,   tg:22.44,   s:'⛽ Energia',      f:'🇪🇸'},
+  {fh:'IDR.MC',   tv:'BME:IDR',        l:'IDR',   n:'Indra Sistemas',            t:'es', lo:50.00,  hi:66.00,   tg:65.56,   s:'🛡️ Defesa/IA',   f:'🇪🇸'},
+  {fh:'FER.MC',   tv:'BME:FER',        l:'FER',   n:'Ferrovial',                 t:'es', lo:50.00,  hi:65.00,   tg:60.19,   s:'🏗️ Construção',  f:'🇪🇸'},
+  {fh:'IBE.MC',   tv:'BME:IBE',        l:'IBE',   n:'Iberdrola',                 t:'es', lo:17.00,  hi:21.00,   tg:19.76,   s:'⚡ Energia',      f:'🇪🇸'},
+  {fh:'RHM.DE',   tv:'XETR:RHM',       l:'RHM',   n:'Rheinmetall',               t:'de', lo:1100,   hi:1900,    tg:1889.38, s:'🛡️ Defesa',       f:'🇩🇪'},
+  {fh:'SAP.DE',   tv:'XETR:SAP',       l:'SAP',   n:'SAP SE',                    t:'de', lo:200,    hi:280,     tg:255.00,  s:'🤖 IA/Software',  f:'🇩🇪'},
+  {fh:'ENR.DE',   tv:'XETR:ENR',       l:'ENR',   n:'Siemens Energy',            t:'de', lo:130,    hi:195,     tg:194.88,  s:'⚡ Energia',      f:'🇩🇪'},
+];
+
+// ---- STATE ----
+let prices = {};
+let alerts = {};
+let history = [];
+let prevAlertState = {};
+let apiKey = '';
+
+STOCKS.forEach(s => { alerts[s.fh] = { lo: s.lo, hi: s.hi }; });
+
+// ---- STORAGE ----
+function loadAll() {
+  try { apiKey = localStorage.getItem('fh_key') || ''; } catch(e) {}
+  try { const a = localStorage.getItem('fh_alerts'); if(a) alerts = {...alerts, ...JSON.parse(a)}; } catch(e) {}
+  try { const h = localStorage.getItem('fh_hist');   if(h) history = JSON.parse(h); } catch(e) {}
+}
+function saveAlerts() { try { localStorage.setItem('fh_alerts', JSON.stringify(alerts)); } catch(e) {} }
+function saveHistory() { try { localStorage.setItem('fh_hist',   JSON.stringify(history.slice(0,100))); } catch(e) {} }
+
+
+// ---- SETUP ----
+function initSetup() {
+  if (apiKey) {
+    showDash();
+    fetchAll();
+  } else {
+    document.getElementById('setupScreen').style.display = 'flex';
+  }
+}
+
+function activateDash() {
+  const k = document.getElementById('keyInput').value.trim();
+  if (!k) { alert('Introduz a API key do Finnhub'); return; }
+  apiKey = k;
+  localStorage.setItem('fh_key', k);
+  showDash();
+  fetchAll();
+}
+
+function showDash() {
+  document.getElementById('setupScreen').style.display = 'none';
+  document.getElementById('mainDash').style.display = 'block';
+}
+
+function changeKey() {
+  const k = prompt('Introduz a nova API key do Finnhub:', apiKey);
+  if (k && k.trim()) {
+    apiKey = k.trim();
+    localStorage.setItem('fh_key', apiKey);
+    fetchAll();
+  }
+}
+
+// ---- TABS ----
+function sw(tab, btn) {
+  document.querySelectorAll('.tb').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-' + tab).classList.add('active');
+}
+
+// ---- FETCH ----
+async function fetchQuote(symbol) {
+  try {
+    const url = `https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(symbol)}&token=${apiKey}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const d = await res.json();
+    if (!d.c || d.c === 0) return null;
+    return {
+      price:    d.c,
+      change:   d.d,
+      changePct:d.dp,
+      high:     d.h,
+      low:      d.l,
+      open:     d.o,
+      prevClose:d.pc,
+      ok: true
+    };
+  } catch(e) { return null; }
+}
+
+async function fetchAll() {
+  const btn = document.getElementById('refreshBtn');
+  const dot = document.getElementById('statusDot');
+  btn.disabled = true;
+  btn.textContent = 'A actualizar...';
+  dot.className = 'dot loading';
+  document.getElementById('statusTxt').textContent = 'A obter cotações via Finnhub...';
+
+  renderAllGrids(); // show loading state
+
+  const results = await Promise.all(STOCKS.map(async s => {
+    const d = await fetchQuote(s.fh);
+    if (d) prices[s.fh] = d;
+    return d;
+  }));
+
+  let anyError = false;
+  let alertsActive = 0;
+
+  STOCKS.forEach((s, i) => {
+    const d = prices[s.fh];
+    if (!d) { anyError = true; return; }
+    const al = alerts[s.fh];
+    const prev = prevAlertState[s.fh];
+
+    if (d.price >= al.hi) {
+      alertsActive++;
+      if (prev !== 'hi') {
+        addHistory(s, 'hi', d.price, al.hi);
+        if (Notification.permission === 'granted') {
+          new Notification(`${s.l} — Alerta ↑`, { body: `${s.n} em €${d.price.toFixed(3)}, acima de €${al.hi.toFixed(2)}` });
+        }
+      }
+      prevAlertState[s.fh] = 'hi';
+    } else if (d.price <= al.lo) {
+      alertsActive++;
+      if (prev !== 'lo') {
+        addHistory(s, 'lo', d.price, al.lo);
+        if (Notification.permission === 'granted') {
+          new Notification(`${s.l} — Alerta ↓`, { body: `${s.n} em €${d.price.toFixed(3)}, abaixo de €${al.lo.toFixed(2)}` });
+        }
+      }
+      prevAlertState[s.fh] = 'lo';
+    } else {
+      prevAlertState[s.fh] = 'ok';
+    }
+  });
+
+  const now = new Date();
+  const ts = now.toLocaleTimeString('pt-PT', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const ds = now.toLocaleDateString('pt-PT', {day:'2-digit',month:'2-digit',year:'numeric'});
+
+  document.getElementById('lastTime').textContent = ts.substring(0,5);
+  document.getElementById('statusTxt').textContent = anyError
+    ? `Atualizado ${ds} às ${ts} (alguns dados falharam — verifica a API key)`
+    : `Atualizado ${ds} às ${ts} · dados Finnhub (atraso ~15 min)`;
+  dot.className = anyError ? 'dot err' : 'dot ok';
+
+  const ac = document.getElementById('alertCount');
+  ac.textContent = alertsActive;
+  ac.className = alertsActive > 0 ? 'slv red' : 'slv grn';
+
+  renderAllGrids();
+  renderHistory();
+  btn.disabled = false;
+  btn.textContent = '🔄 Actualizar';
+}
+
+// ---- RENDER CARDS ----
+function buildCard(s) {
+  const d = prices[s.fh];
+  const al = alerts[s.fh];
+  const price = d?.price ?? null;
+  const changePct = d?.changePct ?? null;
+  const change = d?.change ?? null;
+  const dec = price !== null && price >= 100 ? 2 : 3;
+
+  let cardClass = '';
+  let badge = '<span class="sc-badge badge-ld">A carregar...</span>';
+  if (price !== null) {
+    if (price >= al.hi)     { cardClass = 'alert-hi'; badge = '<span class="sc-badge badge-hi">↑ Acima do alerta</span>'; }
+    else if (price <= al.lo){ cardClass = 'alert-lo'; badge = '<span class="sc-badge badge-lo">↓ Abaixo do alerta</span>'; }
+    else                    { badge = '<span class="sc-badge badge-ok">Dentro do intervalo</span>'; }
+  }
+
+  const priceHtml = price !== null
+    ? `<span class="sc-price">€${price.toFixed(dec)}</span>`
+    : `<span class="sc-price loading">A carregar...</span>`;
+
+  let changeHtml = '<span class="sc-change fl">--</span>';
+  if (changePct !== null) {
+    const cls = changePct > 0 ? 'up' : changePct < 0 ? 'dn' : 'fl';
+    const sign = changePct > 0 ? '+' : '';
+    changeHtml = `<span class="sc-change ${cls}">${sign}${changePct.toFixed(2)}% (${change >= 0 ? '+' : ''}€${Math.abs(change).toFixed(dec)})</span>`;
+  }
+
+  let targetHtml = '';
+  if (price !== null) {
+    const pct = ((s.tg - price) / price * 100);
+    const col = pct >= 0 ? 'var(--gn)' : 'var(--rd)';
+    targetHtml = `<div class="sc-target" style="color:${col}">${pct >= 0 ? '↑' : '↓'} ${pct >= 0 ? '+' : ''}${pct.toFixed(1)}% para alvo €${s.tg.toFixed(2)}</div>`;
+  }
+
+  const high = d?.high  ? `€${d.high.toFixed(dec)}`  : '--';
+  const low  = d?.low   ? `€${d.low.toFixed(dec)}`   : '--';
+  const prev = d?.prevClose ? `€${d.prevClose.toFixed(dec)}` : '--';
+
+  let progHtml = '';
+  if (price !== null && d?.low && d?.high && d.high > d.low) {
+    const pct = Math.min(100, Math.max(0, ((price - d.low) / (d.high - d.low)) * 100));
+    const col = changePct >= 0 ? 'var(--gn)' : 'var(--rd)';
+    progHtml = `
+      <div class="sc-prog">
+        <div class="sc-prog-row"><span>Min dia: ${low}</span><span>Posição no dia</span><span>Max dia: ${high}</span></div>
+        <div class="sc-prog-track"><div class="sc-prog-fill" style="width:${pct.toFixed(1)}%;background:${col}"></div></div>
+      </div>`;
+  }
+
+  return `
+    <div class="stock-card ${cardClass}">
+      <div class="sc-top">
+        <div class="sc-left">
+          <div class="ticker">${s.f} ${s.l}</div>
+          <div class="name">${s.n}</div>
+          <div class="sector">${s.s}</div>
+          ${targetHtml}
+        </div>
+        <div class="sc-right">${priceHtml}${changeHtml}</div>
+      </div>
+      <div class="sc-metrics">
+        <div class="sc-met"><div class="sc-met-l">Fecho anterior</div><div class="sc-met-v">${prev}</div></div>
+        <div class="sc-met"><div class="sc-met-l">Máximo dia</div><div class="sc-met-v">${high}</div></div>
+        <div class="sc-met"><div class="sc-met-l">Mínimo dia</div><div class="sc-met-v">${low}</div></div>
+      </div>
+      ${progHtml}
+      <div class="sc-footer">
+        <span class="al-label">Alerta:</span>
+        <input class="al-input" type="number" step="0.01" value="${al.lo.toFixed(2)}" onchange="updateAlert('${s.fh}','lo',this.value)" />
+        <span class="al-sep">—</span>
+        <input class="al-input" type="number" step="0.01" value="${al.hi.toFixed(2)}" onchange="updateAlert('${s.fh}','hi',this.value)" />
+        ${badge}
+      </div>
+    </div>`;
+}
+
+function renderAllGrids() {
+  ['pt','es','de'].forEach(tab => {
+    const grid = document.getElementById('grid-' + tab);
+    grid.innerHTML = STOCKS.filter(s => s.t === tab).map(buildCard).join('');
+  });
+}
+
+// ---- ALERTS ----
+function updateAlert(fh, type, val) {
+  const v = parseFloat(val);
+  if (!isNaN(v)) { alerts[fh][type] = v; saveAlerts(); renderAllGrids(); }
+}
+
+function renderAlertsTable() {
+  document.getElementById('alertsBody').innerHTML = STOCKS.map(s => {
+    const al = alerts[s.fh];
+    return `<tr>
+      <td><strong>${s.f} ${s.l}</strong><br><span style="font-size:11px;color:var(--tx2)">${s.n}</span></td>
+      <td style="font-size:12px;color:var(--tx2)">${s.s}</td>
+      <td style="font-size:12px">€${s.tg.toFixed(2)}</td>
+      <td><input type="number" step="0.01" value="${al.lo.toFixed(2)}" onchange="updateAlert('${s.fh}','lo',this.value)"/></td>
+      <td><input type="number" step="0.01" value="${al.hi.toFixed(2)}" onchange="updateAlert('${s.fh}','hi',this.value)"/></td>
+    </tr>`;
+  }).join('');
+}
+
+function addHistory(stock, type, price, threshold) {
+  const now = new Date();
+  const t = now.toLocaleTimeString('pt-PT', {hour:'2-digit',minute:'2-digit'});
+  const d = now.toLocaleDateString('pt-PT', {day:'2-digit',month:'2-digit'});
+  history.unshift({ l:stock.l, n:stock.n, type, p:price.toFixed(3), th:threshold.toFixed(2), time:`${d} ${t}` });
+  saveHistory();
+}
+
+function clrH() { history = []; saveHistory(); renderHistory(); }
+
+function renderHistory() {
+  const list = document.getElementById('histList');
+  const count = history.length;
+  document.getElementById('histCount').textContent = count;
+  if (!count) { list.innerHTML = '<li class="he">Nenhum alerta registado ainda.</li>'; return; }
+  list.innerHTML = history.map(h => {
+    const isUp = h.type === 'hi';
+    return `<li class="hi">
+      <span style="color:${isUp?'var(--gn)':'var(--rd)'}">${isUp?'↑':'↓'}</span>
+      <span style="flex:1"><strong>${h.l}</strong> ${isUp?'acima':'abaixo'} do alerta — €${h.p} (limite €${h.th})</span>
+      <span style="font-size:11px;color:var(--tx2);white-space:nowrap">${h.time}</span>
+    </li>`;
+  }).join('');
+}
+
+// ---- INIT ----
+loadAll();
+renderAlertsTable();
+renderHistory();
+initSetup();
+</script>
+</body>
+</html>
